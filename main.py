@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Path, HTTPException, Query
+from fastapi.responses import JSONResponse 
 from pydantic import BaseModel, Field, computed_field
 from typing import Annotated, Literal
 import json
@@ -55,7 +56,7 @@ class Patient(BaseModel):
         elif self.bmi < 25:
             return 'normal'
         elif self.bmi < 30:
-            return 'overweight'   # ✅ Fixed: was incorrectly returning 'normal'
+            return 'overweight'   
         else:
             return 'obese'
 
@@ -100,3 +101,25 @@ def sort_patients(
     sort_order = True if order == 'desc' else False
     sorted_data = sorted(data.values(), key=lambda x: x.get(sort_by, 0), reverse=sort_order)
     return sorted_data
+
+@app.post('/create')
+#data came from clinte in form of json and save it in patient then the deta goes to the deta type {Patient } for data validation as well as bmi and validation caluclation then it comes and store
+    
+def create_patient(patient: Patient):
+
+    #load existing data
+    data=load_data( )
+
+
+    #check if the patient alredy exist
+    if patient.id in data:
+        raise HTTPException(status_code=400 , detail='patient already exist')
+
+
+    #new patient add to the da(json)
+    data[patient.id]= patient.model_dump(exclude=['id'])
+
+    #save in db(json)
+    save_data(data)  
+
+    return JSONResponse(status_code=201 ,content={'message':'patient created sucessfully'})
